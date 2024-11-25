@@ -40,7 +40,8 @@
   }
   
   .status-filter select {
-    background-color: #292929;
+    background-color: #ffff
+    ;
     color: #ecf0f1;
     border: 1px solid #333;
     border-radius: 8px;
