@@ -1,123 +1,121 @@
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import { collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { db } from "../firebase";
 
 function Jobs() {
-  const [applicantInfo, setApplicantInfo] = useState({
-    firstName: '',
-    lastName: '',
-    resumeUrl: '',
-    phoneNumber: ''
-  });
+  const [jobs, setJobs] = useState([]);
+  const [newJob, setNewJob] = useState({ title: "", manager: "", status: "Open" });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setApplicantInfo((prevInfo) => ({
-      ...prevInfo,
-      [name]: value
-    }));
-  };
+  // Fetch jobs in real-time
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "jobs"), (snapshot) => {
+      const jobsList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setJobs(jobsList);
+    });
 
-  const handleSubmit = (e) => {
+    return () => unsubscribe(); // Cleanup listener
+  }, []);
+
+  // Add a new job
+  const addJob = async (e) => {
     e.preventDefault();
-    console.log('Applicant Info:', applicantInfo);
-    setApplicantInfo({ firstName: '', lastName: '', resumeUrl: '', phoneNumber: '' });
+    if (!newJob.title || !newJob.manager) {
+      alert("Please fill in all fields.");
+      return;
+    }
+    try {
+      await addDoc(collection(db, "jobs"), newJob);
+      setNewJob({ title: "", manager: "", status: "Open" });
+    } catch (error) {
+      console.error("Error adding job:", error);
+    }
   };
 
-  const jobListings = [
-    { id: 1, title: 'Software Developer', applicants: 12, manager: 'Leigh', status: 'Open' },
-    { id: 2, title: 'Software Engineer', applicants: 9, manager: 'Leigh', status: 'Open' },
-    { id: 3, title: 'Full Stack Developer', applicants: 8, manager: 'Leigh', status: 'Closed' },
-    { id: 4, title: 'Mobile Developer', applicants: 3, manager: 'Leigh', status: 'Closed' }
-  ];
+  // Update job status
+  const updateJob = async (id, updatedStatus) => {
+    try {
+      const jobRef = doc(db, "jobs", id);
+      await updateDoc(jobRef, { status: updatedStatus });
+    } catch (error) {
+      console.error("Error updating job:", error);
+    }
+  };
+
+  // Delete a job
+  const deleteJob = async (id) => {
+    try {
+      const jobRef = doc(db, "jobs", id);
+      await deleteDoc(jobRef);
+    } catch (error) {
+      console.error("Error deleting job:", error);
+    }
+  };
 
   return (
-    <div className="job-portal">
-      {/* Sidebar Section */}
-      <div className="sidebar">
-        <h2 className="sidebar-logo">APPLYGABAY</h2>
-        <ul className="sidebar-links">
-          <li><Link to="/" className="nav-link">Dashboard</Link></li>
-          <li><Link to="/jobs" className="nav-link active">Jobs</Link></li>
-          <li><Link to="/candidates" className="nav-link">Candidates</Link></li>
-          <li><Link to="/tasks" className="nav-link">Tasks</Link></li>
-          <li><Link to="/messages" className="nav-link">Messages</Link></li>
-          <li><Link to="/settings" className="nav-link">Settings</Link></li>
-        </ul>
+    <div className="main-content">
+      <div className="header">
+        <h1>Job Management</h1>
       </div>
+      <div className="content">
+        {/* Add New Job Form */}
+        <div className="applicant-form-container">
+          <h3>Add New Job</h3>
+          <form onSubmit={addJob}>
+            <input
+              type="text"
+              placeholder="Job Title"
+              value={newJob.title}
+              onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Hiring Manager"
+              value={newJob.manager}
+              onChange={(e) => setNewJob({ ...newJob, manager: e.target.value })}
+              required
+            />
+            <button type="submit">Add Job</button>
+          </form>
+        </div>
 
-      {/* Main Content Section */}
-      <div className="main-content">
-        {/* Header Section */}
-        <header className="header">
-          <h1>Applicant Tracking System</h1>
-        </header>
-
-        {/* Content Area */}
-        <div className="content">
-          {/* Left Column: Job Listings */}
-          <div className="job-listings">
-            <h2>Active Job Listings</h2>
-            <table className="jobs-table">
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Job Title</th>
-                  <th>Applicants</th>
-                  <th>Hiring Manager</th>
+        {/* Job List Table */}
+        <div className="job-listings">
+          <h3>Job Listings</h3>
+          <table className="jobs-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Manager</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {jobs.map((job) => (
+                <tr key={job.id}>
+                  <td>{job.title}</td>
+                  <td>{job.manager}</td>
+                  <td>
+                    <span className={`status ${job.status.toLowerCase()}`}>
+                      {job.status}
+                    </span>
+                  </td>
+                  <td>
+                    <button onClick={() => updateJob(job.id, job.status === "Open" ? "Closed" : "Open")}>
+                      Toggle Status
+                    </button>
+                    <button onClick={() => deleteJob(job.id)} style={{ marginLeft: "10px" }}>
+                      Delete
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {jobListings.map((job) => (
-                  <tr key={job.id}>
-                    <td className={`status ${job.status.toLowerCase()}`}>{job.status}</td>
-                    <td>{job.title}</td>
-                    <td>{job.applicants}</td>
-                    <td>{job.manager}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Right Column: Applicant Form */}
-          <div className="applicant-form-container">
-            <h3>Add Applicant</h3>
-            <form onSubmit={handleSubmit} className="applicant-form">
-              <input
-                type="text"
-                name="firstName"
-                value={applicantInfo.firstName}
-                onChange={handleChange}
-                placeholder="First Name"
-                required
-              />
-              <input
-                type="text"
-                name="lastName"
-                value={applicantInfo.lastName}
-                onChange={handleChange}
-                placeholder="Last Name"
-                required
-              />
-              <input
-                type="url"
-                name="resumeUrl"
-                value={applicantInfo.resumeUrl}
-                onChange={handleChange}
-                placeholder="Resume URL"
-                required
-              />
-              <input
-                type="tel"
-                name="phoneNumber"
-                value={applicantInfo.phoneNumber}
-                onChange={handleChange}
-                placeholder="Phone Number"
-                required
-              />
-              <button type="submit" className="submit-btn">Add Applicant</button>
-            </form>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -125,3 +123,5 @@ function Jobs() {
 }
 
 export default Jobs;
+
+

@@ -1,4 +1,143 @@
-/* Reset and Global Styles */
+/* /* Reset and Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f4f7fc;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100vh;
+}
+
+/* Layout Styles */
+.main-content {
+  margin: 20px auto;
+  padding: 30px;
+  width: 90%;
+  max-width: 1200px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 28px;
+  color: #333;
+}
+
+/* Content Section */
+.content {
+  display: flex;
+  gap: 30px;
+}
+
+.job-listings {
+  flex: 2;
+}
+
+.jobs-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.jobs-table th, .jobs-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.jobs-table th {
+  background-color: #f4f7fc;
+  font-weight: bold;
+  color: #333;
+}
+
+.jobs-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.status {
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.status.open {
+  background-color: #4CAF50;
+  color: #fff;
+}
+
+.status.closed {
+  background-color: #FF5722;
+  color: #fff;
+}
+
+/* Applicant Form */
+.applicant-form-container {
+  flex: 1;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.applicant-form-container h3 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.applicant-form input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.submit-btn {
+  padding: 12px 20px;
+  background-color: #00C9FF;
+  color: #fff;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.submit-btn:hover {
+  background-color: #0288d1;
+}
+
+/* Delete Button Style */
+.submit-btn[style] {
+  background-color: #FF5722 !important;
+}
+
+.submit-btn[style]:hover {
+  background-color: #E64A19 !important;
+}
+Reset and Global Styles */
 * {
   margin: 0;
   padding: 0;

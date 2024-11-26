@@ -1,24 +1,34 @@
-import React, { useState } from 'react';
-import { FaSearch } from 'react-icons/fa'; // Importing the search icon from react-icons
+import React, { useState, useEffect } from "react";
+import { FaSearch } from "react-icons/fa";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
 
 function Candidates() {
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [candidates, setCandidates] = useState([]);
 
-  // Sample applicants data
-  const applicants = [
-    { id: 1, name: 'John Doe', position: 'Software Developer', status: 'hired' },
-    { id: 2, name: 'Jane Smith', position: 'Full Stack Developer', status: 'rejected' },
-    { id: 3, name: 'Alex Johnson', position: 'Product Manager', status: 'under-review' },
-    { id: 4, name: 'Emily Clark', position: 'UI/UX Designer', status: 'hired' },
-    { id: 5, name: 'Michael Brown', position: 'Backend Developer', status: 'rejected' },
-    { id: 6, name: 'Sarah Lee', position: 'Frontend Developer', status: 'under-review' }
-  ];
+  // Fetch candidates in real-time from Firestore
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "jobs"), (snapshot) => {
+      const candidatesList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        name: doc.data().manager, // Map manager to name for simplicity
+        position: doc.data().title, // Map job title to position
+        status: doc.data().status.toLowerCase(), // Ensure status is consistent
+      }));
+      setCandidates(candidatesList);
+    });
 
-  // Filter applicants based on search and status filter
-  const filteredApplicants = applicants.filter(applicant => {
-    const matchesSearch = applicant.name.toLowerCase().includes(search.toLowerCase()) || applicant.position.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter ? applicant.status === statusFilter : true;
+    return () => unsubscribe(); // Cleanup listener
+  }, []);
+
+  // Filter candidates based on search and status filter
+  const filteredCandidates = candidates.filter((candidate) => {
+    const matchesSearch =
+      candidate.name.toLowerCase().includes(search.toLowerCase()) ||
+      candidate.position.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter ? candidate.status === statusFilter : true;
     return matchesSearch && matchesStatus;
   });
 
@@ -28,40 +38,38 @@ function Candidates() {
       <div className="filters">
         <div className="filter-input-container">
           <FaSearch className="search-icon" /> {/* Search Icon */}
-          <input 
-            type="text" 
-            placeholder="Search by Name or Position" 
+          <input
+            type="text"
+            placeholder="Search by Name or Position"
             value={search}
-            onChange={(e) => setSearch(e.target.value)} 
+            onChange={(e) => setSearch(e.target.value)}
             className="filter-input"
           />
         </div>
 
         <div className="status-filter">
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)} 
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
             className="filter-input"
           >
             <option value="">All Status</option>
-            <option value="hired">Hired</option>
-            <option value="rejected">Rejected</option>
-            <option value="under-review">Under Review</option>
+            <option value="open">Open</option>
+            <option value="closed">Closed</option>
           </select>
         </div>
       </div>
 
-      {/* Render Filtered Applicants */}
-      {filteredApplicants.length > 0 ? (
+      {/* Render Filtered Candidates */}
+      {filteredCandidates.length > 0 ? (
         <div className="applicant-cards">
-          {filteredApplicants.map((applicant) => (
-            <div className="applicant-card" key={applicant.id}>
-              <h3>{applicant.name}</h3>
-              <p className="position">{applicant.position}</p>
-              <div className={`status ${applicant.status}`}>
-                {applicant.status === 'hired' && 'Hired'}
-                {applicant.status === 'rejected' && 'Rejected'}
-                {applicant.status === 'under-review' && 'Under Review'}
+          {filteredCandidates.map((candidate) => (
+            <div className="applicant-card" key={candidate.id}>
+              <h3>{candidate.name}</h3>
+              <p className="position">{candidate.position}</p>
+              <div className={`status ${candidate.status}`}>
+                {candidate.status === "open" && "Open"}
+                {candidate.status === "closed" && "Closed"}
               </div>
             </div>
           ))}
